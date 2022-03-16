@@ -1,0 +1,26 @@
+{
+	"name": "Metadataengine",
+	"properties": {
+		"description": "This is the Main Linked service that communicates with the Metadata Engine ",
+		"parameters": {
+			"SynapseWS": {
+				"type": "string",
+				"defaultValue": "demoworkspace001"
+			},
+			"SynapsePool": {
+				"type": "string",
+				"defaultValue": "EDW"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=\"@{concat(linkedService().SynapseWS,'.database.windows.net')}\";Initial Catalog=@{linkedService().SynapsePool}"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	},
+	"type": "Microsoft.Synapse/workspaces/linkedservices"
+}

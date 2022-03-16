@@ -1,0 +1,139 @@
+{
+	"name": "RawToCleansed",
+	"properties": {
+		"description": "  ",
+		"activities": [
+			{
+				"name": "ProcessRawToCleansed",
+				"type": "SynapseNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebook": {
+						"referenceName": "RawToCuratedDelta",
+						"type": "NotebookReference"
+					},
+					"parameters": {
+						"blob_account_name": {
+							"value": {
+								"value": "@pipeline().parameters.blob_account_name",
+								"type": "Expression"
+							},
+							"type": "string"
+						},
+						"blob_container_name": {
+							"value": {
+								"value": "@pipeline().parameters.blob_container_name",
+								"type": "Expression"
+							},
+							"type": "string"
+						},
+						"blob_relative_path": {
+							"value": {
+								"value": "@pipeline().parameters.blob_relative_path",
+								"type": "Expression"
+							},
+							"type": "string"
+						},
+						"target_db": {
+							"value": {
+								"value": "@pipeline().parameters.target_db",
+								"type": "Expression"
+							},
+							"type": "string"
+						},
+						"target_container": {
+							"value": {
+								"value": "@pipeline().parameters.target_container",
+								"type": "Expression"
+							},
+							"type": "string"
+						},
+						"target_path": {
+							"value": {
+								"value": "@pipeline().parameters.target_path",
+								"type": "Expression"
+							},
+							"type": "string"
+						},
+						"target_table": {
+							"value": {
+								"value": "@pipeline().parameters.target_table",
+								"type": "Expression"
+							},
+							"type": "string"
+						},
+						"target_type": {
+							"value": {
+								"value": "@pipeline().parameters.target_type",
+								"type": "Expression"
+							},
+							"type": "string"
+						},
+						"partition_by_clause": {
+							"value": {
+								"value": "@pipeline().parameters.partition_by_clause",
+								"type": "Expression"
+							},
+							"type": "string"
+						},
+						"target_bk": {
+							"value": {
+								"value": "@pipeline().parameters.target_bk",
+								"type": "Expression"
+							},
+							"type": "string"
+						}
+					},
+					"snapshot": true
+				}
+			}
+		],
+		"parameters": {
+			"blob_account_name": {
+				"type": "string"
+			},
+			"blob_container_name": {
+				"type": "string"
+			},
+			"blob_relative_path": {
+				"type": "string"
+			},
+			"target_db": {
+				"type": "string"
+			},
+			"target_path": {
+				"type": "string"
+			},
+			"target_container": {
+				"type": "string"
+			},
+			"target_table": {
+				"type": "string"
+			},
+			"partition_by_clause": {
+				"type": "string",
+				"defaultValue": " "
+			},
+			"target_bk": {
+				"type": "string",
+				"defaultValue": " "
+			},
+			"target_type": {
+				"type": "string",
+				"defaultValue": "D"
+			}
+		},
+		"folder": {
+			"name": "Data Engineering/Child Pipelines"
+		},
+		"annotations": []
+	}
+}

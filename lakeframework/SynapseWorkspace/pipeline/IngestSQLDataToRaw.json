@@ -1,0 +1,365 @@
+{
+	"name": "IngestSQLDataToRaw",
+	"properties": {
+		"description": " ",
+		"activities": [
+			{
+				"name": "GetConfigurations",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderStoredProcedureName": "[ME_Data].[sp_GetDynamicMSSQLQuery]",
+						"storedProcedureParameters": {
+							"DataSetType": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.DataSetType",
+									"type": "Expression"
+								}
+							},
+							"ExecutionGroup": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.RunGroupCode",
+									"type": "Expression"
+								}
+							},
+							"ExecutionPlane": {
+								"type": "String",
+								"value": "A"
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "me_config_dw",
+						"type": "DatasetReference",
+						"parameters": {
+							"WorkspaceName": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "FE_Execute_SQL_Pipeline",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetConfigurations",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetConfigurations').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "ME_Stage_InsertDatageEntry",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Switch1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[ME_Stage].[InsertDataStageEntry]",
+								"storedProcedureParameters": {
+									"DatasetID": {
+										"value": {
+											"value": "@{item().DatasetID}",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"Partition_String": {
+										"value": {
+											"value": "@{item().Target_Partition}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Row_Count": {
+										"value": "0",
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Metadataengine",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "Switch1",
+							"type": "Switch",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"on": {
+									"value": "@item().DataSetType",
+									"type": "Expression"
+								},
+								"cases": [
+									{
+										"value": "MSSQL",
+										"activities": [
+											{
+												"name": "Execute Generic MSSQL Pipeline",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "SQLtoParquet",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true,
+													"parameters": {
+														"SqlServerName": {
+															"value": "@{item().DBServerName}",
+															"type": "Expression"
+														},
+														"SqlDatabaseName": {
+															"value": "@{item().DBName}",
+															"type": "Expression"
+														},
+														"SQLKVName": {
+															"value": "@{item().SQLKVName}",
+															"type": "Expression"
+														},
+														"SqlUserName": {
+															"value": "@{item().SqlUserName}",
+															"type": "Expression"
+														},
+														"SQLQuery": {
+															"value": "@{item().SQLQuery}",
+															"type": "Expression"
+														},
+														"DLContainer": {
+															"value": "@{item().DLContainer}",
+															"type": "Expression"
+														},
+														"DLPath": {
+															"value": "@{item().DLFolder}",
+															"type": "Expression"
+														},
+														"DLFileName": {
+															"value": "@{item().DLFileName}",
+															"type": "Expression"
+														}
+													}
+												}
+											}
+										]
+									},
+									{
+										"value": "MYSQL",
+										"activities": [
+											{
+												"name": "Execute Generic MYSQL Pipeline",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "MYSQLtoParquet",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true,
+													"parameters": {
+														"SqlServerName": {
+															"value": "@{item().DBServerName}",
+															"type": "Expression"
+														},
+														"SqlDatabaseName": {
+															"value": "@{item().DBName}",
+															"type": "Expression"
+														},
+														"SQLKVName": {
+															"value": "@{item().SQLKVName}",
+															"type": "Expression"
+														},
+														"SqlUserName": {
+															"value": "@{item().SqlUserName}",
+															"type": "Expression"
+														},
+														"SQLQuery": {
+															"value": "@{item().SQLQuery}",
+															"type": "Expression"
+														},
+														"DLContainer": {
+															"value": "@{item().DLContainer}",
+															"type": "Expression"
+														},
+														"DLPath": {
+															"value": "@{item().DLFolder}",
+															"type": "Expression"
+														},
+														"DLFileName": {
+															"value": "@{item().DLFileName}",
+															"type": "Expression"
+														}
+													}
+												}
+											}
+										]
+									},
+									{
+										"value": "AzMYSQL",
+										"activities": [
+											{
+												"name": "Execute Generic AzMYSQL Pipeline",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "MYSQLtoParquet",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true,
+													"parameters": {
+														"SqlServerName": {
+															"value": "@{item().DBServerName}",
+															"type": "Expression"
+														},
+														"SqlDatabaseName": {
+															"value": "mysql",
+															"type": "Expression"
+														},
+														"SQLKVName": {
+															"value": "@{item().SQLKVName}",
+															"type": "Expression"
+														},
+														"SqlUserName": {
+															"value": "@{item().SqlUserName}",
+															"type": "Expression"
+														},
+														"SQLQuery": {
+															"value": "@{item().SQLQuery}",
+															"type": "Expression"
+														},
+														"DLContainer": {
+															"value": "@{item().DLContainer}",
+															"type": "Expression"
+														},
+														"DLPath": {
+															"value": "@{item().DLFolder}",
+															"type": "Expression"
+														},
+														"DLFileName": {
+															"value": "@{item().DLFileName}",
+															"type": "Expression"
+														}
+													}
+												}
+											}
+										]
+									},
+									{
+										"value": "ORACLE",
+										"activities": [
+											{
+												"name": "Execute Generic ORACLE Pipeline",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "ORACLEtoParquet",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true,
+													"parameters": {
+														"OracleServerName": {
+															"value": "@{item().DBServerName}",
+															"type": "Expression"
+														},
+														"OraclelDatabaseName": {
+															"value": "@{item().DBName}",
+															"type": "Expression"
+														},
+														"OracleKVName": {
+															"value": "@{item().SQLKVName}",
+															"type": "Expression"
+														},
+														"OracleUserName": {
+															"value": "@{item().SqlUserName}",
+															"type": "Expression"
+														},
+														"OracleQuery": {
+															"value": "@{item().SQLQuery}",
+															"type": "Expression"
+														},
+														"DLContainer": {
+															"value": "@{item().DLContainer}",
+															"type": "Expression"
+														},
+														"DLPath": {
+															"value": "@{item().DLFolder}",
+															"type": "Expression"
+														},
+														"DLFileName": {
+															"value": "@{item().DLFileName}",
+															"type": "Expression"
+														}
+													}
+												}
+											}
+										]
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"DataSetType": {
+				"type": "string"
+			},
+			"RunGroupCode": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MetadataEngine/ParentPipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-01-13T20:59:46Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

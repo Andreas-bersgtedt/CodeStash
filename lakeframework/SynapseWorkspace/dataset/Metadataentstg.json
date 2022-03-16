@@ -1,0 +1,84 @@
+{
+	"name": "Metadataentstg",
+	"properties": {
+		"description": "  ",
+		"linkedServiceName": {
+			"referenceName": "Metadataengine",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"SynapseWS": "demoworkspace001",
+				"SynapsePool": "EDW"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "MetadataQuerySource",
+				"type": "varchar"
+			},
+			{
+				"name": "MetadataEntityName",
+				"type": "varchar"
+			},
+			{
+				"name": "MetadataSchemaName",
+				"type": "varchar"
+			},
+			{
+				"name": "MetadataObjectName",
+				"type": "varchar"
+			},
+			{
+				"name": "MetadataObjectType",
+				"type": "varchar"
+			},
+			{
+				"name": "MetadataObjectlength",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 0
+			},
+			{
+				"name": "MetadataObjectPrecision",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 0
+			},
+			{
+				"name": "MetadataObjectScale",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 0
+			},
+			{
+				"name": "MetadataObjectCollation",
+				"type": "varchar"
+			},
+			{
+				"name": "DataSetID",
+				"type": "varchar"
+			},
+			{
+				"name": "MetadataObjectOrder",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 0
+			},
+			{
+				"name": "MetadataObjectIdentityFlag",
+				"type": "varchar"
+			},
+			{
+				"name": "MetadataObjectRefreshUTCTimeStamp",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "ME_Data",
+			"table": "MetadataEntityStage"
+		}
+	}
+}

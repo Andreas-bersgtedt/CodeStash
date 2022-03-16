@@ -1,0 +1,224 @@
+{
+	"name": "ProcessCurated",
+	"properties": {
+		"description": " ",
+		"activities": [
+			{
+				"name": "GetRawPartitionConfig",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderStoredProcedureName": "[ME_Data].[sp_GetRawPartitionCurationMetadata]",
+						"storedProcedureParameters": {
+							"MaxPartGroup": {
+								"type": "Int32",
+								"value": {
+									"value": "@pipeline().parameters.Maxpart",
+									"type": "Expression"
+								}
+							},
+							"PartGroup": {
+								"type": "Int32",
+								"value": {
+									"value": "@pipeline().parameters.Part",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "me_config_dw",
+						"type": "DatasetReference",
+						"parameters": {
+							"WorkspaceName": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetRawPartitionConfig",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetRawPartitionConfig').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 40,
+					"activities": [
+						{
+							"name": "Execute RawToCleansed",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "RawToCleansed",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"blob_account_name": {
+										"value": "@{item().blob_account_name}",
+										"type": "Expression"
+									},
+									"blob_container_name": {
+										"value": "@{item().blob_container_name}",
+										"type": "Expression"
+									},
+									"blob_relative_path": {
+										"value": "@{item().blob_relative_path}",
+										"type": "Expression"
+									},
+									"target_db": {
+										"value": "@{item().target_db}",
+										"type": "Expression"
+									},
+									"target_path": {
+										"value": "@{item().target_path}",
+										"type": "Expression"
+									},
+									"target_container": {
+										"value": "@{item().target_container}",
+										"type": "Expression"
+									},
+									"target_table": {
+										"value": "@{item().target_table}",
+										"type": "Expression"
+									},
+									"partition_by_clause": {
+										"value": "@{item().partition_by_clause}",
+										"type": "Expression"
+									},
+									"target_bk": {
+										"value": "@{item().target_bk}",
+										"type": "Expression"
+									},
+									"target_type": {
+										"value": "@{item().target_type}",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Log Success",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "Execute RawToCleansed",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "Metadataengine",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "NonQuery",
+										"text": {
+											"value": "@concat(' UPDATE [ME_Stage].[RawPartitionStage] SET [Status] = 1 Where [ID] = ', string(item().RawPartitionStageID))",
+											"type": "Expression"
+										}
+									}
+								],
+								"logSettings": {
+									"logDestination": "ActivityOutput"
+								}
+							}
+						},
+						{
+							"name": "Log Failure",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "Execute RawToCleansed",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "Metadataengine",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "NonQuery",
+										"text": {
+											"value": "@concat(' UPDATE [ME_Stage].[RawPartitionStage] SET [Status] = -1 Where [ID] = ', string(item().RawPartitionStageID))",
+											"type": "Expression"
+										}
+									}
+								],
+								"logSettings": {
+									"logDestination": "ActivityOutput"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"Maxpart": {
+				"type": "int",
+				"defaultValue": 1
+			},
+			"Part": {
+				"type": "int",
+				"defaultValue": 1
+			}
+		},
+		"folder": {
+			"name": "Data Engineering"
+		},
+		"annotations": []
+	}
+}

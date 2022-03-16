@@ -1,0 +1,39 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "demoworkspace001"
+		},
+		"Metadataengine_connectionString": {
+			"value": ""
+		},
+		"MySQLServer_connectionString": {
+			"value": ""
+		},
+		"OracleGeneric_connectionString": {
+			"value": ""
+		},
+		"SQLServer_connectionString": {
+			"value": ""
+		},
+		"demoworkspace001-WorkspaceDefaultSqlServer_connectionString": {
+			"value": ""
+		},
+		"piraeusdemo01-WorkspaceDefaultSqlServer_connectionString": {
+			"value": ""
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"value": "https://mekeyvault001.vault.azure.net/"
+		},
+		"MetadataLake_properties_typeProperties_url": {
+			"value": "https://demostarageaccount001.dfs.core.windows.net"
+		},
+		"demoworkspace001-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://demostarageaccount001.dfs.core.windows.net"
+		},
+		"piraeusdemo01-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://piraeusdemosa.dfs.core.windows.net"
+		}
+	}
+}

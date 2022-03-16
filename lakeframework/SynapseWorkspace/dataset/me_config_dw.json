@@ -1,0 +1,25 @@
+{
+	"name": "me_config_dw",
+	"properties": {
+		"description": " ",
+		"linkedServiceName": {
+			"referenceName": "Metadataengine",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"SynapseWS": {
+					"value": "@dataset().WorkspaceName",
+					"type": "Expression"
+				},
+				"SynapsePool": "EDW"
+			}
+		},
+		"parameters": {
+			"WorkspaceName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": []
+	}
+}

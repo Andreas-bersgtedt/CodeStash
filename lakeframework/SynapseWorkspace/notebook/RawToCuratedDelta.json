@@ -1,0 +1,275 @@
+{
+	"name": "RawToCuratedDelta",
+	"properties": {
+		"description": "Universal load procedue ",
+		"folder": {
+			"name": "Data Engineering"
+		},
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "lakeprocessor",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 1,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "true",
+				"spark.dynamicAllocation.minExecutors": "1",
+				"spark.dynamicAllocation.maxExecutors": "3",
+				"spark.autotune.trackingId": "6dfa8507-cd14-49a1-ba57-4ed08d78af98"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_spark",
+				"display_name": "scala"
+			},
+			"language_info": {
+				"name": "scala"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/851c54e9-e549-4015-87aa-eb3e00270118/resourceGroups/DemoAssets_rg/providers/Microsoft.Synapse/workspaces/demoworkspace001/bigDataPools/lakeprocessor",
+				"name": "lakeprocessor",
+				"type": "Spark",
+				"endpoint": "https://demoworkspace001.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/lakeprocessor",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.1",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": true
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Generic Parquet file/folder to Curated / Enriched Delta table\r\n",
+					"\r\n",
+					"This is a generic data engineering pattern that reads a parquet file or collection of files and instantiate them into a DeltaLake Table in the Curated Zone.\r\n",
+					"\r\n",
+					"## This notebook assumes the folowing:\r\n",
+					"\r\n",
+					"- The storage account is linked and authenticated in synapse\r\n",
+					"- The storage account is ADLS gen2\r\n",
+					"\r\n",
+					"\r\n",
+					"# The notebook is driven by a set of parameters that are devided up into two catagories:\r\n",
+					"\r\n",
+					"## Catagory 1: Source Variables:\r\n",
+					"\r\n",
+					"- blob_account_name,  this is the name of your storage account \r\n",
+					"- blob_container_name,  this is the name of your source storage container \r\n",
+					"- blob_relative_path, this is your relative folder path for the source parquet file(s) \r\n",
+					"\r\n",
+					"## Catagory 2: Target Variables:\r\n",
+					"\r\n",
+					"- target_db,\r\n",
+					"this is the name of the target database this is the target folder for deltalake tables\r\n",
+					"- target_table, \r\n",
+					"this is the name of the target table \r\n",
+					"- target_type, \r\n",
+					"this is the target type, can be D for Delta(Assumed Clean incremental source) ,I for Insert(Need row key to handle de-duplication) , U for Upsert (Need row key/business key for merge), O for OverWrite\r\n",
+					"- target_container, this is the name of the target storage container\r\n",
+					"- partition\\_by\\_clause, this is the partition statement IE: \" PARTITIONED BY (**_{Partition column}_**) \"  this is only used when if the table does not exist\r\n",
+					"\r\n",
+					"\r\n",
+					"\r\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "scala"
+					},
+					"jupyter": {
+						"source_hidden": false
+					},
+					"tags": [
+						"parameters"
+					]
+				},
+				"source": [
+					"%%spark\r\n",
+					"val blob_account_name = \"piraeusdemosa\"\r\n",
+					"val blob_container_name = \"raw\"\r\n",
+					"val blob_relative_path = \"396/mssql/dbo/adb_esgsentimentvsmarketperformance/2022/02/15/22/43/*.parquet\"\r\n",
+					"val target_db = \"sales_mart\" \r\n",
+					"val target_path = \"/delta/sales_mart/\"\r\n",
+					"val target_container = \"enriched\"\r\n",
+					"val target_table =\"dbo_adb_esgsentimentvsmarketperformance\"\r\n",
+					"val partition_by_clause = \" \"\r\n",
+					"val target_bk = \" \"\r\n",
+					"val target_type = \"D\"\r\n",
+					""
+				],
+				"execution_count": 1
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Setup Main Control Parameters"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Generate or Insert into Enriched based on Partition and Upsert if Business key exists"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"microsoft": {
+						"language": "scala"
+					},
+					"collapsed": true
+				},
+				"source": [
+					"%%spark\r\n",
+					"import io.delta.tables._\r\n",
+					"import org.apache.spark.sql.functions._\r\n",
+					"\r\n",
+					"\r\n",
+					"\r\n",
+					"//spark.databricks.delta.schema.autoMerge.enabled(true)\r\n",
+					"spark.conf.set(\"spark.databricks.delta.retentionDurationCheck.enabled\",\"true\")\r\n",
+					"\r\n",
+					"//val deltaTable = DeltaTable.forPath(spark, s\"${txtqual}${location_pth}${target_table}/${txtqual}\")\r\n",
+					"//Main Declarations\r\n",
+					"val txtqual = \"\"\"\"\"\"\"\r\n",
+					"val tempselectsql = s\"select *,CURRENT_TIMESTAMP as EnrichedProcessDateTime,input_file_name() as RawFileName from sourcedata \"\r\n",
+					"val location_pth = s\"abfss://${target_container}@${blob_account_name}.dfs.core.windows.net${target_path}\"\r\n",
+					"val source_location_pth = s\"abfss://${blob_container_name}@${blob_account_name}.dfs.core.windows.net/${blob_relative_path}\"\r\n",
+					"\r\n",
+					"//Generate Create statements\r\n",
+					"val cdbsql_cmd = s\"CREATE DATABASE IF NOT EXISTS ${target_db} LOCATION ${txtqual}${location_pth}${txtqual}\"\r\n",
+					"val temptablesql =s\"CREATE OR REPLACE TEMPORARY VIEW sourcedata USING parquet options (path ${txtqual}${source_location_pth}${txtqual})\"\r\n",
+					"val target_table_sql = s\"CREATE TABLE IF NOT EXISTS ${target_db}.`${target_table.replaceAll(\"-\",\"_\")}` USING DELTA ${partition_by_clause} LOCATION ${txtqual}${location_pth}${target_table.replaceAll(\"-\",\"_\")}/${txtqual} as ${tempselectsql}\"\r\n",
+					"val qtdtarget_table = s\"`${target_table.replaceAll(\"-\",\"_\")}`\"\r\n",
+					"//Set session states\r\n",
+					"//spark.databricks.delta.schema.autoMerge.enabled(true)\r\n",
+					"\r\n",
+					"\r\n",
+					"//Run DB Create if not exists scripts\r\n",
+					"spark.sql(cdbsql_cmd)\r\n",
+					"//Generate Temp View of source data\r\n",
+					"spark.sql(temptablesql)\r\n",
+					"\r\n",
+					"\r\n",
+					"//Setup Main Control Parameters\r\n",
+					"spark.catalog.setCurrentDatabase(target_db)\r\n",
+					"val tblexist = spark.catalog.tableExists(qtdtarget_table)\r\n",
+					"\r\n",
+					"\r\n",
+					"//If Target table does not exitst then generate \r\n",
+					"if  (tblexist == false)\r\n",
+					"{\r\n",
+					"    \r\n",
+					"    spark.sql(target_table_sql)\r\n",
+					"}\r\n",
+					"\r\n",
+					"println(tblexist)\r\n",
+					"if  (tblexist)\r\n",
+					"{\r\n",
+					"//Force Spark Context\r\n",
+					"    spark.catalog.setCurrentDatabase(target_db)\r\n",
+					"//Check source data type\r\n",
+					"if  (target_type == \"D\")\r\n",
+					"{\r\n",
+					"//GENERATE Insert Statement\r\n",
+					"val insertsql = s\"INSERT INTO ${target_db}.${target_table.replaceAll(\"-\",\"_\")} \\n  ${tempselectsql} \"\r\n",
+					"spark.sql(insertsql)\r\n",
+					"\r\n",
+					"}\r\n",
+					"\r\n",
+					"if  (target_type == \"I\")\r\n",
+					"{\r\n",
+					"//GENERATE Insert Statement\r\n",
+					"val insertsql = s\"INSERT INTO ${target_db}.`${target_table.replaceAll(\"-\",\"_\")}` \\n  ${tempselectsql} \\n Where ${target_bk} NOT IN (SELECT ${target_bk} From ${target_db}.`${target_table.replaceAll(\"-\",\"_\")}`) \"\r\n",
+					"//spark.sql(insertsql)\r\n",
+					"spark.sql(insertsql)\r\n",
+					"\r\n",
+					"}\r\n",
+					"\r\n",
+					"if  (target_type == \"U\")\r\n",
+					"{\r\n",
+					"//GENERATE Insert Statement\r\n",
+					"val insertsql = s\"MERGE INTO ${target_db}.`${target_table.replaceAll(\"-\",\"_\")}` \\n USING (${tempselectsql}) AS sourcedata \\n ON ${target_db}.`${target_table.replaceAll(\"-\",\"_\")}`.${target_bk} = sourcedata.${target_bk} \\n WHEN MATCHED THEN \\n UPDATE SET * \\n WHEN NOT MATCHED \\n THEN INSERT *\"\r\n",
+					"spark.sql(insertsql)\r\n",
+					"}\r\n",
+					"\r\n",
+					"if  (target_type == \"O\")\r\n",
+					"{\r\n",
+					"\r\n",
+					"//GENERATE Insert Statement\r\n",
+					"val insertsqld = s\"DELETE FROM ${target_db}.`${target_table.replaceAll(\"-\",\"_\")}`\"\r\n",
+					"val insertsqli = s\"INSERT INTO ${target_db}.`${target_table.replaceAll(\"-\",\"_\")}` \\n  ${tempselectsql}\"\r\n",
+					"val insertsqlv = s\"VACUUM ${target_db}.`${target_table.replaceAll(\"-\",\"_\")}` RETAIN 0 HOURS\"\r\n",
+					"\r\n",
+					"//Delete and insert\r\n",
+					"spark.sql(insertsqld)\r\n",
+					"spark.sql(insertsqli)\r\n",
+					"//Cleanup\r\n",
+					"spark.conf.set(\"spark.databricks.delta.retentionDurationCheck.enabled\",\"false\")\r\n",
+					"spark.sql(insertsqlv)\r\n",
+					"spark.conf.set(\"spark.databricks.delta.retentionDurationCheck.enabled\",\"true\")\r\n",
+					"}\r\n",
+					"\r\n",
+					"\r\n",
+					"\r\n",
+					"}\r\n",
+					"\r\n",
+					"\r\n",
+					"\r\n",
+					"\r\n",
+					""
+				],
+				"execution_count": null
+			}
+		]
+	}
+}

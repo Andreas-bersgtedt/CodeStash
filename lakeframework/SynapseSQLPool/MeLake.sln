@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32228.343
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "MeLake", "MeLake\MeLake.sqlproj", "{B5B822C9-11AB-4927-AA6E-C14A5543016C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B5B822C9-11AB-4927-AA6E-C14A5543016C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5B822C9-11AB-4927-AA6E-C14A5543016C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5B822C9-11AB-4927-AA6E-C14A5543016C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{B5B822C9-11AB-4927-AA6E-C14A5543016C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5B822C9-11AB-4927-AA6E-C14A5543016C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5B822C9-11AB-4927-AA6E-C14A5543016C}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {885F9405-339A-4E7A-B7BF-A33620AC5BC3}
+	EndGlobalSection
+EndGlobal

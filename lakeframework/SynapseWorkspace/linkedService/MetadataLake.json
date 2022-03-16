@@ -1,0 +1,16 @@
+{
+	"name": "MetadataLake",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://demostarageaccount001.dfs.core.windows.net"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		},
+		"description": "   "
+	},
+	"type": "Microsoft.Synapse/workspaces/linkedservices"
+}
